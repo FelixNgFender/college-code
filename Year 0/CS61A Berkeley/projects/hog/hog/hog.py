@@ -1,5 +1,6 @@
 """CS 61A Presents The Game of Hog."""
 
+from numpy import roll
 from dice import six_sided, four_sided, make_test_dice
 from ucb import main, trace, interact
 
@@ -126,26 +127,50 @@ def play(strategy0, strategy1, score0=0, score1=0, dice=six_sided,
     who = 0  # Who is about to take a turn, 0 (first) or 1 (second)
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
-    if score0 < goal and score1 < goal:
+    scored0, scored1, prev_scored0, prev_scored1, say_flag = 0, 0, 0, 0, 0
+    while score0 < goal and score1 < goal:
         num_rolls0 = strategy0(score0, score1)
         if num_rolls0 == 0:
-            score0 += free_bacon(score1)
+            scored0 += free_bacon(score1) #Free Bacon
         else:
-            score0 += take_turn(num_rolls0, score1, dice)
+            scored0 += take_turn(num_rolls0, score1, dice) #Vanilla Rolls
+        score0 += scored0
+        feral_diff0 = abs(num_rolls0 - prev_scored0)
+        if feral_hogs:
+            if feral_diff0 == 2:
+                score0 += 3 #Feral Hogs
+        prev_scored0, scored0 = scored0, 0
         if is_swap(score0, score1):
-            score0, score1 = score1, score0
-        if score0 < goal:    
+            score0, score1 = score1, score0 #Swine Swap
+        
+        if not say_flag:
+            say0 = say(score0, score1)
+        else:
+            say0 = say1(score0, score1)
+        say_flag += 1
+
+        if score0 < goal and score1 < goal:
             num_rolls1 = strategy1(score1, score0)
-            if num_rolls1 == 0:
-                score1 += free_bacon(score0)
+            if num_rolls1 == 0: #Free Bacon
+                scored1 += free_bacon(score0)
             else:
-                score1 += take_turn(num_rolls1, score0, dice)
+                scored1 += take_turn(num_rolls1, score0, dice) #Vanilla Rolls
+            score1 += scored1
+            feral_diff1 = abs(num_rolls1 - prev_scored1)
+            if feral_hogs:
+                if feral_diff1 == 2:
+                    score1 += 3 #Feral Hogs
+            prev_scored1, scored1 = scored1, 0
             if is_swap(score1, score0): 
-                score0, score1 = score1, score0
+                score0, score1 = score1, score0 #Swine Swap
+            say1 = say0(score0, score1)
+        else: break
     # END PROBLEM 5
     # (note that the indentation for the problem 6 prompt (***YOUR CODE HERE***) might be misleading)
     # BEGIN PROBLEM 6
     "*** YOUR CODE HERE ***"
+
+
     # END PROBLEM 6
     return score0, score1
 
@@ -232,6 +257,15 @@ def announce_highest(who, prev_high=0, prev_score=0):
     assert who == 0 or who == 1, 'The who argument should indicate a player.'
     # BEGIN PROBLEM 7
     "*** YOUR CODE HERE ***"
+    
+    def say(score0, score1):
+        if who: score = score1
+        else: score = score0
+        if score - prev_score > prev_high:
+            print(score - prev_score, "point(s)! That's the biggest gain yet for Player", who)
+            return announce_highest(who, score - prev_score, score)
+        return announce_highest(who, prev_high, score)
+    return say
     # END PROBLEM 7
 
 
@@ -271,6 +305,14 @@ def make_averaged(g, num_samples=1000):
     """
     # BEGIN PROBLEM 8
     "*** YOUR CODE HERE ***"
+    def average_of_g(*args):
+        k, g_sum, g_average = 0, 0, 0
+        while k < num_samples:
+            g_sum += g(*args)
+            k += 1
+        g_average = g_sum / num_samples
+        return g_average
+    return average_of_g
     # END PROBLEM 8
 
 
@@ -285,6 +327,15 @@ def max_scoring_num_rolls(dice=six_sided, num_samples=1000):
     """
     # BEGIN PROBLEM 9
     "*** YOUR CODE HERE ***"
+    num_rolls, high_avg, high_num_rolls = 10, 0, 10
+    while num_rolls > 0:
+        avg_turn_score = make_averaged(roll_dice, num_samples)
+        if avg_turn_score(num_rolls, dice) >= high_avg:
+            high_avg = avg_turn_score(num_rolls, dice)
+            if high_num_rolls > num_rolls:
+                high_num_rolls = num_rolls
+        num_rolls -= 1
+    return high_num_rolls
     # END PROBLEM 9
 
 
@@ -334,7 +385,9 @@ def bacon_strategy(score, opponent_score, margin=8, num_rolls=6):
     rolls NUM_ROLLS otherwise.
     """
     # BEGIN PROBLEM 10
-    return 6  # Replace this statement
+    if free_bacon(opponent_score) >= margin:
+        return 0
+    return num_rolls  # Replace this statement
     # END PROBLEM 10
 
 
@@ -344,7 +397,12 @@ def swap_strategy(score, opponent_score, margin=8, num_rolls=6):
     non-beneficial swap. Otherwise, it rolls NUM_ROLLS.
     """
     # BEGIN PROBLEM 11
-    return 6  # Replace this statement
+    if is_swap(free_bacon(opponent_score) + score, opponent_score): 
+        if free_bacon(opponent_score) + score <= opponent_score:
+            return 0
+    elif free_bacon(opponent_score) >= margin:
+        return 0
+    return num_rolls  # Replace this statement
     # END PROBLEM 11
 
 
