@@ -2,3 +2,4 @@
 'pingpong-correct', (512, 70)
 'missing_digits-correct', (1024, 70)
 'move_stack-correct', (1536, 70)
+'count_change-correct', (2048, 70)
