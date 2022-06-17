@@ -98,7 +98,7 @@ def pingpong_down(n, res, index):
             res, index = res - 1, index + 1
     return res, index """
 
-def count_change(total, largest_unit = None, flag = 0):
+def count_change(total, largest_unit = None):
     """Return the number of ways to make change for total.
 
     >>> count_change(7)
@@ -111,23 +111,20 @@ def count_change(total, largest_unit = None, flag = 0):
     9828
     """
     "*** YOUR CODE HERE ***"
-    def near_largest_change(target):
-        if target == 0:
-            return 0
-        k = 0
-        while pow(2, k) < target:
-            k += 1
-        if pow(2, k) > target:
-            return pow(2, k - 1)
-        else:
-            return pow(2, k)
+    def near_largest_change(num):
+        i = 0
+        while num != 1:
+            num //= 2
+            i += 1
+        return 2 ** i
     if total < 0:
         return 0
     elif largest_unit == 1 or total == 0 or total == 1:
         return 1
-    elif flag == 0:
+    elif largest_unit == None:
         largest_unit = near_largest_change(total)
-    return count_change(total - largest_unit, largest_unit, 1) + count_change(total, largest_unit / 2, 1)
+    return count_change(total - largest_unit, largest_unit) + count_change(total, largest_unit / 2)
+print(count_change(100))
 
 def missing_digits(n, prev_last = 0):
     """Given a number a that is in sorted, increasing order,
