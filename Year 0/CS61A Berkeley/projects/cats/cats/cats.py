@@ -18,12 +18,11 @@ def choose(paragraphs, select, k):
     """
     # BEGIN PROBLEM 1
     "*** YOUR CODE HERE ***"
-    for paragraph in paragraphs:
-        if k == 0 and select(paragraph):
-            return paragraph
-        elif select(paragraph):
-            k -= 1
-    return ""
+    chosen = [paragraph for paragraph in paragraphs if select(paragraph)]
+    if len(chosen) <= k:
+        return ''
+    else:
+        return chosen[k]
     # END PROBLEM 1
 
 
@@ -41,10 +40,10 @@ def about(topic):
     # BEGIN PROBLEM 2
     "*** YOUR CODE HERE ***"
     def select(paragraph):
-        for word in split(lower(remove_punctuation(paragraph))):
-            for topic_word in topic:
-                if  word == topic_word:
-                    return True
+        stripped = split(lower(remove_punctuation(paragraph)))
+        for topic_word in topic:
+            if topic_word in stripped:
+                return True
         return False
     return select
     # END PROBLEM 2
@@ -71,13 +70,9 @@ def accuracy(typed, reference):
     reference_words = split(reference)
     # BEGIN PROBLEM 3
     "*** YOUR CODE HERE ***"
-    i, correct = 0, 0
+    i, correct, roi = 0, 0, min(len(typed_words), len(reference_words))
     if typed == '':
         return 0.0
-    if len(typed_words) > len(reference_words):
-        roi = len(reference_words)
-    else:
-        roi = len(typed_words)
     for i in range(roi):
         if typed_words[i] == reference_words[i]:
             correct += 1
@@ -98,42 +93,74 @@ def autocorrect(user_word, valid_words, diff_function, limit):
     """Returns the element of VALID_WORDS that has the smallest difference
     from USER_WORD. Instead returns USER_WORD if that difference is greater
     than LIMIT.
-    """
+    """ 
     # BEGIN PROBLEM 5
     "*** YOUR CODE HERE ***"
+    if user_word in valid_words:
+        return user_word
+    differences = [diff_function(user_word, valid_word, limit) for valid_word in valid_words]
+    min_diff = min(differences) 
+    min_index = differences.index(min_diff)
+    if min_diff > limit:
+        return user_word
+    else:
+        return valid_words[min_index]       
     # END PROBLEM 5
 
 
-def sphinx_swap(start, goal, limit):
+def sphinx_swap(start, goal, limit, diff = 0):
     """A diff function for autocorrect that determines how many letters
     in START need to be substituted to create GOAL, then adds the difference in
     their lengths.
     """
     # BEGIN PROBLEM 6
-    assert False, 'Remove this line'
+    if diff == 0:
+        diff = abs(len(goal) - len(start))
+    if len(goal) == 1 or len(start) == 1:
+        if goal[0] == start[0]:
+            return diff
+        else:
+            return diff + 1
+    elif diff > limit:
+        return limit + 1
+    elif start[0] != goal[0]:
+        return sphinx_swap(start[1:], goal[1:], limit, diff + 1)
+    else:
+        return sphinx_swap(start[1:], goal[1:], limit, diff)
     # END PROBLEM 6
 
 
-def feline_fixes(start, goal, limit):
+def feline_fixes(start, goal, limit, diff = 0):
     """A diff function that computes the edit distance from START to GOAL."""
-    assert False, 'Remove this line'
+    
+    if diff > limit:
+        return limit + 1
 
-    if ______________: # Fill in the condition
+    elif start == "": # Fill in the condition
         # BEGIN
         "*** YOUR CODE HERE ***"
+        return len(goal)
         # END
 
-    elif ___________: # Feel free to remove or add additional cases
+    elif goal == "": # Feel free to remove or add additional cases
         # BEGIN
         "*** YOUR CODE HERE ***"
+        return len(start)
         # END
+
+    elif start[0] == goal[0]:
+        diff = feline_fixes(start[1:], goal[1:], limit, diff)
+        return diff
 
     else:
-        add_diff = ...  # Fill in these lines
-        remove_diff = ... 
-        substitute_diff = ... 
         # BEGIN
         "*** YOUR CODE HERE ***"
+        diff = 1 + min(
+            feline_fixes(start, goal[1:], limit, diff + 1), #Addition
+            feline_fixes(start[1:], goal, limit, diff + 1), #Deletion
+            feline_fixes(start[1:], goal[1:], limit, diff + 1) #Replace
+        )
+        return diff
         # END
 
 
