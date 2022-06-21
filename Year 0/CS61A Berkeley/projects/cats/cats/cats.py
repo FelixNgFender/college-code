@@ -1,5 +1,6 @@
 """Typing test implementation"""
 
+from os import times
 from select import select
 from utils import *
 from ucb import main, interact, trace
@@ -178,6 +179,12 @@ def report_progress(typed, prompt, id, send):
     """Send a report of your id and progress so far to the multiplayer server."""
     # BEGIN PROBLEM 8
     "*** YOUR CODE HERE ***"
+    i, correct = 0, 0
+    while len(typed) > i and typed[i] == prompt[i]:
+        correct, i = correct + 1, i + 1
+    progress = correct / len(prompt)
+    send({'id': id, 'progress': progress})
+    return progress
     # END PROBLEM 8
 
 
@@ -204,6 +211,8 @@ def time_per_word(times_per_player, words):
     """
     # BEGIN PROBLEM 9
     "*** YOUR CODE HERE ***"
+    times = [[player[i + 1] - player[i] for i in range(len(player) - 1)] for player in times_per_player]    
+    return game(words, times)
     # END PROBLEM 9
 
 
@@ -219,6 +228,13 @@ def fastest_words(game):
     words = range(len(all_words(game)))    # An index for each word
     # BEGIN PROBLEM 10
     "*** YOUR CODE HERE ***"
+    res = [[] for player in players]
+    for word in words:
+        word_time = [time(game, player, word) for player in players]
+        min_time = min(word_time)
+        min_player = word_time.index(min_time)
+        res[min_player] += [word_at(game, word)]
+    return res
     # END PROBLEM 10
 
 
