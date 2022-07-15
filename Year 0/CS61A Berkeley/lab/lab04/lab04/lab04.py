@@ -133,7 +133,4 @@ def max_subseq(n, l):
         return n
     last, all_but_last = n % 10, n // 10
     ones_branch, no_ones_branch = 10 * max_subseq(all_but_last, l - 1) + last, max_subseq(all_but_last, 1)
-    if ones_branch > no_ones_branch:
-        return ones_branch
-    else:
-        return no_ones_branch
+    return max(ones_branch, no_ones_branch)
