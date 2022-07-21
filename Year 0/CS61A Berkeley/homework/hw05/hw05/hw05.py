@@ -1,4 +1,4 @@
-
+from inspect import stack
 
 
 class VendingMachine:
@@ -39,6 +39,34 @@ class VendingMachine:
     'Here is your soda.'
     """
     "*** YOUR CODE HERE ***"
+    def __init__(self, item, price):
+        self.item = item
+        self.price = price
+        self.stock = 0
+        self.balance = 0
+
+    def add_funds(self, amount):
+        if self.stock == 0:
+            return 'Machine is out of stock. Here is your ${0}.'.format(amount)
+        self.balance += amount
+        return 'Current balance: ${0}'.format(self.balance)
+
+    def vend(self):
+        if self.stock == 0:
+            return 'Machine is out of stock.'
+        if self.price > self.balance:
+            return 'You must add ${0} more funds.'.format(self.price - self.balance)
+        if self.price < self.balance:
+            self.change = self.balance - self.price
+            self.balance = 0
+            self.stock -= 1
+            return 'Here is your {0} and ${1} change.'.format(self.item, self.change)
+        self.stock -= 1
+        return 'Here is your {0}.'.format(self.item)
+
+    def restock(self, amount):    
+        self.stock += amount
+        return 'Current {0} stock: {1}'.format(self.item, self.stock)
 
 def preorder(t):
     """Return a list of the entries in this tree in the order that they
@@ -51,7 +79,13 @@ def preorder(t):
     [2, 4, 6]
     """
     "*** YOUR CODE HERE ***"
-
+    visited, stack = [], [t]
+    while stack:
+        node = stack.pop(0)
+        visited.append(node)
+        stack[0:0] = [b for b in node.branches]
+    return [e.label for e in visited]
+    
 def store_digits(n):
     """Stores the digits of a positive number n in a linked list.
 
@@ -64,6 +98,10 @@ def store_digits(n):
     Link(8, Link(7, Link(6)))
     """
     "*** YOUR CODE HERE ***"
+    if len(str(n)) == 1:
+        return Link(n)
+    else:
+        return Link(int(str(n)[0]), store_digits(int(str(n)[1:])))
 
 def generate_paths(t, value):
     """Yields all possible paths from the root of t to a node with the label value
@@ -99,13 +137,14 @@ def generate_paths(t, value):
     >>> sorted(list(path_to_2))
     [[0, 2], [0, 2, 1, 2]]
     """
-
+    if t.label == value:
+        yield [t.label]
     "*** YOUR CODE HERE ***"
-
-    for _______________ in _________________:
-        for _______________ in _________________:
-
-            "*** YOUR CODE HERE ***"
+    for b in t.branches:
+        branch_paths = list(generate_paths(b, value))
+        for e in branch_paths:
+            e[0:0] = [t.label]
+            yield e
 
 ## Optional Questions
 def is_bst(t):
@@ -134,6 +173,18 @@ def is_bst(t):
     False
     """
     "*** YOUR CODE HERE ***"
+    def if_valid(node, left_boundary, right_boundary):
+        if len(node.branches) > 2:
+            return False
+        if len(node.branches) == 1:
+            return if_valid(node.branches[0], left_boundary, node.label) or if_valid(node.branches[0], node.label, right_boundary)
+        if not (left_boundary <= node.label and node.label <= right_boundary):
+            return False
+        if node.is_leaf():
+            return True
+        return if_valid(node.branches[0], left_boundary, node.label) and if_valid(node.branches[1], node.label, right_boundary)
+    return if_valid(t, float("-inf"), float("inf"))
+
 class Mint:
     """A mint creates coins by stamping on years.
 
@@ -171,9 +222,11 @@ class Mint:
 
     def create(self, kind):
         "*** YOUR CODE HERE ***"
+        return kind(self.year)
 
     def update(self):
         "*** YOUR CODE HERE ***"
+        self.year = Mint.current_year
 
 class Coin:
     def __init__(self, year):
@@ -181,12 +234,18 @@ class Coin:
 
     def worth(self):
         "*** YOUR CODE HERE ***"
+        age = Mint.current_year - self.year
+        if age > 50:
+            return self.cents + age - 50
+        else:
+            return self.cents
 
 class Nickel(Coin):
     cents = 5
 
 class Dime(Coin):
     cents = 10
+
 def remove_all(link , value):
     """Remove all the nodes containing value in link. Assume that the
     first element is never removed.
@@ -205,6 +264,14 @@ def remove_all(link , value):
     <0 1>
     """
     "*** YOUR CODE HERE ***"
+    if link.rest == Link.empty:
+        pass
+    elif link.rest.first == value:
+        link.rest = link.rest.rest
+        remove_all(link, value)
+    else:
+        remove_all(link.rest, value)
+
 def deep_map(f, link):
     """Return a Link with the same structure as link but with fn mapped over
     its elements. If an element is an instance of a linked list, recursively
@@ -219,6 +286,13 @@ def deep_map(f, link):
     <<2 <4 6> 8> <<10>>>
     """
     "*** YOUR CODE HERE ***"
+    if link == Link.empty:
+        return Link.empty
+    if type(link.first) == Link:
+        first = deep_map(f, link.first)
+    else:
+        first = f(link.first)
+    return Link(first, deep_map(f, link.rest))
 
 ## Link Class ##
 
