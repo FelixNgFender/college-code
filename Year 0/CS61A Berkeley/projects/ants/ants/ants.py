@@ -611,9 +611,10 @@ def apply_effect(effect, bee, duration):
     def apply(gamestate):
         nonlocal duration
         if duration > 0:
-            affected(gamestate)
             duration -= 1
+            affected(gamestate)
         else:
+            bee.backwards = False
             unaffected(gamestate)
     bee.action = apply
     # END Problem EC
@@ -629,9 +630,8 @@ class SlowThrower(ThrowerAnt):
     # END Problem EC
 
     def throw_at(self, target):
-        if target and not target.scared:
+        if target:
             apply_effect(make_slow, target, 3)
-            target.scared = True
 
 
 class ScaryThrower(ThrowerAnt):
@@ -646,8 +646,10 @@ class ScaryThrower(ThrowerAnt):
     def throw_at(self, target):
         # BEGIN Problem EC
         "*** YOUR CODE HERE ***"
-        if target:
+        if target and not target.scared:
+            target.scared = True
             apply_effect(make_scare, target, 2)
+            
         # END Problem EC
 
 class LaserAnt(ThrowerAnt):
